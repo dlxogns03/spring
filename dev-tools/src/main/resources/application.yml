@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: dev-tools
+  mvc:
+    view:
+      prefix: WEB/views/
+      suffix: .jsp
+    
+logging:
+  level:
+    root: debug
+
