@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.ktdsuniversity.edu.members.dao.MembersDao;
-import com.ktdsuniversity.edu.members.vo.MemberVO;
-import com.ktdsuniversity.edu.members.vo.MembersListVO;
+import com.ktdsuniversity.edu.members.vo.response.MemberVO;
+import com.ktdsuniversity.edu.members.vo.response.MembersListVO;
 
 @Service
 public class MemverServiceImpl implements MemberService{

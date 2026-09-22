@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.ktdsuniversity.edu.members.service.MemberService;
-import com.ktdsuniversity.edu.members.vo.MembersListVO;
+import com.ktdsuniversity.edu.members.vo.response.MembersListVO;
 
 @Controller
 public class MembersController {

@@ -1,4 +1,4 @@
-package com.ktdsuniversity.edu.members.vo;
+package com.ktdsuniversity.edu.members.vo.response;
 
 public class MemberVO {
 	
