@@ -56,7 +56,7 @@ public interface ArticlesDao {
 	 * @param articleId
 	 * @return
 	 */
-	int deleteArticle(@Param("articleId")String articleId);
+	int deleteArticle(String articleId);
 
 	/**
 	 * 삭제한 게시글 아이디 출력 
