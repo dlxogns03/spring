@@ -1,0 +1,3 @@
+Service package
+
+   트랜잭션(COmmit, ROllback)을 관리하는 패키지

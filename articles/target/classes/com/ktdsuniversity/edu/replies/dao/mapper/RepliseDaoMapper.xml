@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ktdsuniversity.edu.replies.dao.RepliesDao">
+	<select id="readAllReplies"
+		resultType="com.ktdsuniversity.edu.replies.vo.resqonse.RepliesVO">
+		SELECT ID
+		, ARTICLE_ID
+		, EMAIL
+		, CONTENT
+		, RECOMMEND_CNT
+		, DEL_YN
+		, CRT_DT
+		, MDFY_DT
+		, FILE_SET_ID
+		FROM REPLIES r
+		WHERE r.ARTICLE_ID = #{_parameter}
+		AND r.DEL_YN = 'N'
+	</select>
+
+	<select id="selectRepliesByRepliesId"
+		resultType="com.ktdsuniversity.edu.replies.vo.resqonse.RepliesVO">
+		SELECT ID
+		, ARTICLE_ID
+		, EMAIL
+		, CONTENT
+		, RECOMMEND_CNT
+		, DEL_YN
+		, CRT_DT
+		, MDFY_DT
+		, FILE_SET_ID
+		FROM REPLIES r
+		WHERE ID = #{repliesId}
+		  AND ARTICLE_ID = #{articleId}
+		  AND DEL_YN = 'N'
+	</select>
+	
+	<insert id="insertNewReplies"
+	        parameterType="com.ktdsuniversity.edu.replies.vo.request.RegistRepliesVO">
+            <selectKey order="BEFORE" keyProperty="id" resultType="string">
+            SELECT 'RP-'||TO_CHAR(SYSDATE,'YYYYMMDD-')||LPAD(SEQ_REPLIES_PK.NEXTVAL,6,'0')
+              FROM DUAL
+            </selectKey>
+	        INSERT INTO REPLIES 
+				 (ID
+				, ARTICLE_ID
+				, EMAIL
+				, CONTENT
+				, RECOMMEND_CNT
+				, DEL_YN
+				, CRT_DT
+				, MDFY_DT
+				, FILE_SET_ID)
+			VALUES 
+			     (#{id}
+			    , #{articleId}
+			    , #{email}
+			    , #{content}
+			    , 0
+			    , 'N'
+			    , SYSDATE
+			    , NULL
+			    , #{fileSetId})
+	</insert>
+	<update id="deleteOneReplies"
+	        parameterType="string">
+	        UPDATE REPLIES 
+               SET DEL_YN = 'Y'
+                 , MDFY_DT = SYSDATE 
+             WHERE ID = #{repliesId}
+               and ARTICLE_ID = #{articleId}
+               and DEL_YN = 'N'
+	 </update>
+	 
+	 <update id="recommendReplies"
+	        parameterType="string">
+	        UPDATE REPLIES
+	           SET RECOMMEND_CNT = RECOMMEND_CNT + 1
+	         WHERE ID = #{repliesId}
+	           and ARTICLE_ID = #{articleId}
+	           and DEL_YN = 'N'
+     </update>
+     
+     <update id="updateReplies">
+           UPDATE REPLIES
+              SET CONTENT = #{modifyRepliesVO.content}
+                , MDFY_DT = SYSDATE 
+                , FILE_SET_ID = #{modifyRepliesVO.fileSetId}
+            WHERE ARTICLE_ID = #{articleId}
+              AND ID = #{repliesId}
+              AND EMAIL = #{modifyRepliesVO.email}
+              AND DEL_YN = 'N'
+     </update>
+     
+</mapper>
+
+

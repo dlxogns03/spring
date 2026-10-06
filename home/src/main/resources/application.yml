@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: home
+  datasource:
+    driver-class-name:  oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@//localhost:1521/XE
+    username: SPRING_BOOT
+    PASSWORD: SPRING_BOOT_1234
