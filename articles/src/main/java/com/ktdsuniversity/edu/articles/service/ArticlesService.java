@@ -2,6 +2,7 @@ package com.ktdsuniversity.edu.articles.service;
 
 import com.ktdsuniversity.edu.articles.vo.request.ModifyArticleVO;
 import com.ktdsuniversity.edu.articles.vo.request.RegistArticleVO;
+import com.ktdsuniversity.edu.articles.vo.request.SearchArticleVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticleListVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticlesVO;
 
@@ -11,7 +12,7 @@ public interface ArticlesService {
 	 * 게시글의 목록을 조회.
 	 * @return (게시글 개수, 게시글 목록)
 	 */
-	ArticleListVO readAllAricles();
+	ArticleListVO readAllAricles(SearchArticleVO searchArticleVO);
 
 	/**
 	 * 게시글 생성

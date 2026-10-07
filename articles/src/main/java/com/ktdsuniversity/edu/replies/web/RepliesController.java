@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 import com.ktdsuniversity.edu.commons.util.ApiResponse;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
@@ -30,7 +31,7 @@ public class RepliesController {
 	private RepliesService repliesService;
 	//GET / replies/{게시글아이디}
 	//게시글에 등록된 댓글 반환.
-	@GetMapping("/articles/{articleId}/replies")
+	@GetMapping("/articles/{articleId}/replies/list")
 	public ApiResponse<RepliesListVO> getReplies(@PathVariable String articleId){
 		RepliesListVO result = this.repliesService.readAllReplies(articleId);
 		return ApiResponse.OK(result);
@@ -45,26 +46,21 @@ public class RepliesController {
 									@PathVariable String articleId,
 									@Valid @ModelAttribute RegistRepliesVO registRepliesVO,
 									BindingResult validationResult,
-									HttpSession session){
+									@SessionAttribute("__LOGIN_USER__") MembersVO membersVO){
 		
 		if(validationResult.hasErrors()) {
 			return ApiResponse.BAD_REQUEST(validationResult.getFieldErrors());
 		}
 		
 		//HttpSession에 있는 __LOGIN_USER__에 있는 EAMIL을 꺼내 REGISTARTICLEVO에 할당.
-		MembersVO membersVO = (MembersVO) session.getAttribute("__LOGIN_USER__");
-		if(membersVO == null) {
-			throw new IllegalArgumentException("로그인이 필요한 기능입니다.");
-		}
+		
 		registRepliesVO.setEmail( membersVO.getEmail());
 		
 		
-		try {
-			RepliesVO replies = this.repliesService.createNewReplies(articleId, registRepliesVO);
-			return ApiResponse.CREATED(replies);
-		} catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		RepliesVO replies = this.repliesService.createNewReplies(articleId, registRepliesVO);
+		return ApiResponse.CREATED(replies);
+		
 	}
 	//PUT /replies/{게시글아이디}/{댓글아이디}
 	//게시글에 등록된 댓글을 수정(파일 첨부 가능)
@@ -78,7 +74,7 @@ public class RepliesController {
 												
 												@Valid @ModelAttribute ModifyRepliesVO modifyRepliesVO,
 												BindingResult vaildationResult,
-												HttpSession session){
+												@SessionAttribute("__LOGIN_USER__") MembersVO membersVO){
 		
 		
 		
@@ -87,17 +83,12 @@ public class RepliesController {
 		}
 		
 		//HttpSession에 있는 __LOGIN_USER__에 있는 EAMIL을 꺼내 REGISTARTICLEVO에 할당.
-		MembersVO membersVO = (MembersVO) session.getAttribute("__LOGIN_USER__");
-		if(membersVO == null) {
-			throw new IllegalArgumentException("로그인이 필요한 기능입니다.");
-		}
+	
 		modifyRepliesVO.setEmail( membersVO.getEmail());
-		try {
-			RepliesVO modifyrelies = this.repliesService.updateReplies(articleId, repliesId, modifyRepliesVO);
-			return ApiResponse.OK(modifyrelies);
-		} catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		RepliesVO modifyrelies = this.repliesService.updateReplies(articleId, repliesId, modifyRepliesVO);
+		return ApiResponse.OK(modifyrelies);
+		
 		
 	}
 	
@@ -112,12 +103,10 @@ public class RepliesController {
 												
 												@Size(min = 18, max=20, message="잘못된 값입니다.")
 												@PathVariable("replyId") String repliesId){
-		try {
-			String result = this.repliesService.deleteReplies(articleId, repliesId);
-			return ApiResponse.OK(result);
-		} catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		String result = this.repliesService.deleteReplies(articleId, repliesId);
+		return ApiResponse.OK(result);
+		
 	}
 	
 	// PUT/replies/{게시글아이디}/recommend/{댓글아이디}
@@ -130,12 +119,7 @@ public class RepliesController {
 												 @Size(min = 18, max=20, message="잘못된 값입니다.")
 												 @PathVariable("replyId") String repliesId){
 		
-		try {
-			long recommendCount = this.repliesService.recommendReplies(articleId, repliesId);
-			return ApiResponse.OK(recommendCount);
-		}catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
-		
+		long recommendCount = this.repliesService.recommendReplies(articleId, repliesId);
+		return ApiResponse.OK(recommendCount);
 	}
 }

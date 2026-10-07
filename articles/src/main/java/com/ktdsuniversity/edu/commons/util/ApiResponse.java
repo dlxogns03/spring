@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.ktdsuniversity.edu.commons.vo.PaginationVO;
 
 import lombok.Data;
 
@@ -22,6 +25,8 @@ public class ApiResponse<T> {
 	private T body;
 
 	private String error;
+	
+	private PaginationVO paginate;
 	
 	private Map<String, List<String>> validations;
 	
@@ -62,7 +67,7 @@ public class ApiResponse<T> {
 		return result;
 	}
 	
-	public static <T> ApiResponse<T> BAD_REQUEST(List<FieldError> errors) {
+	public static <T> ApiResponse<T> BAD_REQUEST(List<? extends MessageSourceResolvable> errors) {
 		
 		ApiResponse<T> result = new ApiResponse<>();
 		result.setHttpStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -70,7 +75,13 @@ public class ApiResponse<T> {
 		
 		result.validations = new HashMap<>();
 		errors.forEach(error -> {
-			String fieldName = error.getField();
+			String fieldName = null;
+			if (error instanceof FieldError fieldError) {
+				fieldName = fieldError.getField();
+			} else {
+				DefaultMessageSourceResolvable paramError = (DefaultMessageSourceResolvable) error.getArguments()[0];
+				fieldName = paramError.getDefaultMessage();
+			}
 			if ( ! result.validations.containsKey(fieldName) ) {
 				List<String> errorMessages = new ArrayList<>();
 				result.validations.put(fieldName, errorMessages);

@@ -1,6 +1,8 @@
 package com.ktdsuniversity.edu.articles.web;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,16 +12,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 import com.ktdsuniversity.edu.articles.service.ArticlesService;
 import com.ktdsuniversity.edu.articles.vo.request.ModifyArticleVO;
 import com.ktdsuniversity.edu.articles.vo.request.RegistArticleVO;
+import com.ktdsuniversity.edu.articles.vo.request.SearchArticleVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticleListVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticlesVO;
 import com.ktdsuniversity.edu.commons.util.ApiResponse;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -40,6 +43,7 @@ public class ArticlesController {
 //	@Qualifier("articlesServiceimpl")
 	private ArticlesService articlesService;
 	
+	private static final Logger logger = LoggerFactory.getLogger(ArticlesController.class);
 	/**
 	 * Spring Framework 7.0이상
 	 * Spring Boot 4.0 이상에서는 @Autowired 사용을 권장하지 않는다.
@@ -51,13 +55,16 @@ public class ArticlesController {
 //		this.articlesService = articlesService;
 //	}
 	
-	@GetMapping("/articles")
+	@GetMapping("/articles/list")
 	// 컨트롤러가 반환 시키는 "객체"를 "JSON"으로 변환시키는 View를 사용해라! ==> @ResponseBody
 	@ResponseBody
-	public ApiResponse<ArticleListVO> getArticles() {
-//		System.out.println(this.articlesService);
-		ArticleListVO result = this.articlesService.readAllAricles();
-		return ApiResponse.OK(result);
+	public ApiResponse<ArticleListVO> getArticles(SearchArticleVO searchArticleVO) {
+		logger.debug(this.articlesService.toString());
+		ArticleListVO result = this.articlesService.readAllAricles(searchArticleVO);
+		
+		ApiResponse<ArticleListVO> response = ApiResponse.OK(result);
+		response.setPaginate(searchArticleVO);
+		return response;
 	}
 	
 	
@@ -67,15 +74,16 @@ public class ArticlesController {
 			//command object
 			//파일을 전송하는 방법
 //두번째 방법	//클라이언트가 컨트롤러로 전송한 파라미터(폼파라미터, 쿼리 스트링파라미터(? K = V))를 자동으로 받아오는 역할.
-			@Valid @ModelAttribute RegistArticleVO registArticleVO,
-			BindingResult validationResult,
 			//클라이언트가 컨트롤러로 전송한 파라미터(폼파라미터, 쿼리스트링파라미터)를 하나씩 받아오는 역할.
 //첫번째 방법 	@RequestParam List<MultipartFile> file //multipartFile은 하나의 파일만 받아온다 => 
 												   //LIST로 변경하면 복수개의 파일을 받아올 수 있다
-			HttpSession session) {
+			@Valid @ModelAttribute RegistArticleVO registArticleVO,
+			BindingResult validationResult,
+			//HttpSession에 등록된 __LOGIN_USER__ 에 있는 MembersVO를 파라미터로 받아와라
+			@SessionAttribute("__LOGIN_USER__") MembersVO membersVO
+			) {
 		
-		System.out.println(validationResult);
-		
+		logger.debug(validationResult.toString());
 		// Validation 검사를 통과하지 못했다면
 		if(validationResult.hasErrors()) {
 			// 클라이언트에게 에러를 전달한다.
@@ -83,19 +91,14 @@ public class ArticlesController {
 		}
 		
 		//HttpSession에 있는 __LOGIN_USER__에 있는 EAMIL을 꺼내 REGISTARTICLEVO에 할당.
-		MembersVO membersVO = (MembersVO) session.getAttribute("__LOGIN_USER__");
-		if(membersVO == null) {
-			throw new IllegalArgumentException("로그인이 필요한 기능입니다.");
-		}
+		
 		registArticleVO.setEmail( membersVO.getEmail());
 		
-		try {
-			ArticlesVO result = this.articlesService.createNewArticle(registArticleVO);
+		
+		ArticlesVO result = this.articlesService.createNewArticle(registArticleVO);
 			
-			return ApiResponse.CREATED(result);
-		} catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		return ApiResponse.CREATED(result);
+	
 		
 	}
 	
@@ -105,25 +108,21 @@ public class ArticlesController {
 				@PathVariable String articleId, 
 				@Valid @ModelAttribute ModifyArticleVO modifyArticleVO,
 				BindingResult validationResult,
-				HttpSession session) {
+				@SessionAttribute("__LOGIN_USER__") MembersVO membersVO) {
 		
 		if(validationResult.hasErrors()) {
 			return ApiResponse.BAD_REQUEST(validationResult.getFieldErrors());
 		}
 		
 		//HttpSession에 있는 __LOGIN_USER__에 있는 EAMIL을 꺼내 REGISTARTICLEVO에 할당.
-		MembersVO membersVO = (MembersVO) session.getAttribute("__LOGIN_USER__");
-		if(membersVO == null) {
-			throw new IllegalArgumentException("로그인이 필요한 기능입니다.");
-		}
+		
 		modifyArticleVO.setEmail( membersVO.getEmail());
 		
-		try {
-			ArticlesVO result = this.articlesService.updateArticle(articleId, modifyArticleVO);
-			return ApiResponse.OK(result);
-		}catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		ArticlesVO result = this.articlesService.updateArticle(articleId, modifyArticleVO);
+		
+		return ApiResponse.OK(result);
+		
 		
 	}
 	
@@ -133,25 +132,19 @@ public class ArticlesController {
 											@Size(min = 18, max=20, message="잘못된 값입니다.")
 											@PathVariable String articleId) {
 		
+		String deleteResult = this.articlesService.deleteArticle(articleId);
 		
-		try {
-			String deleteResult = this.articlesService.deleteArticle(articleId);
-			return ApiResponse.OK(deleteResult);
-		}catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		return ApiResponse.OK(deleteResult);
+		
 		
 	}
 	
 	@GetMapping("/articles/{articleId}")
 	@ResponseBody
 	public ApiResponse<ArticlesVO> getOneArticle(@PathVariable String articleId) {
-		try {
-			ArticlesVO result = this.articlesService.readOneArticle(articleId);
-			return ApiResponse.OK(result);
-		}catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		ArticlesVO result = this.articlesService.readOneArticle(articleId);
+		return ApiResponse.OK(result);
 		
 	}
 	
@@ -159,13 +152,9 @@ public class ArticlesController {
 	@PutMapping("/articles/recommend/{articleId}")
 	@ResponseBody
 	public ApiResponse<Long> recommendOneArticle(@PathVariable String articleId) {
-		try {
-			long recommendResult = this.articlesService.recommendOneArticle(articleId);
-			return ApiResponse.OK(recommendResult);
-			
-		}catch(IllegalArgumentException iae) {
-			return ApiResponse.FORBIDDEN(iae.getMessage());
-		}
+		
+		long recommendResult = this.articlesService.recommendOneArticle(articleId);
+		return ApiResponse.OK(recommendResult);
 		
 	}
 }

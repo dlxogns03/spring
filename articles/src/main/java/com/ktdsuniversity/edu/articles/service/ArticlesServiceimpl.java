@@ -2,15 +2,22 @@ package com.ktdsuniversity.edu.articles.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.ktdsuniversity.edu.articles.dao.ArticlesDao;
 import com.ktdsuniversity.edu.articles.vo.request.ModifyArticleVO;
 import com.ktdsuniversity.edu.articles.vo.request.RegistArticleVO;
+import com.ktdsuniversity.edu.articles.vo.request.SearchArticleVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticleListVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticlesVO;
+import com.ktdsuniversity.edu.commons.exceptions.ArticleException;
+import com.ktdsuniversity.edu.commons.exceptions.enums.ArticleCodes;
+import com.ktdsuniversity.edu.commons.exceptions.enums.ExceptionType;
 import com.ktdsuniversity.edu.files.components.MultipartHandler;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
 
@@ -21,6 +28,9 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class ArticlesServiceimpl implements ArticlesService{
+	
+	
+	private static final Logger logger = LoggerFactory.getLogger(ArticlesServiceimpl.class);
 	
 	private ArticlesDao articlesDao;
 //	private FilesDao filesDao;
@@ -33,12 +43,14 @@ public class ArticlesServiceimpl implements ArticlesService{
 
 
 
+	
 	@Override
-	public ArticleListVO readAllAricles() {
+	public ArticleListVO readAllAricles(SearchArticleVO searchArticleVO) {
 
 		
-		long count = this.articlesDao.selectArticlesCount();
-		List<ArticlesVO> articlesList = this.articlesDao.selectAllArticles();
+		long count = this.articlesDao.selectArticlesCount(searchArticleVO);
+		searchArticleVO.calculatePageCount(count);
+		List<ArticlesVO> articlesList = this.articlesDao.selectAllArticles(searchArticleVO);
 		
 		ArticleListVO list  = new ArticleListVO();
 		list.setArticleCount(count);
@@ -48,9 +60,11 @@ public class ArticlesServiceimpl implements ArticlesService{
 	}
 
 
+	@Transactional
 	@Override
 	public ArticlesVO createNewArticle(RegistArticleVO registArticleVO) {
 		
+		logger.debug(registArticleVO.toString());
 		String fileSetId = this.multipartHandler.storeFiles(registArticleVO.getFile(),
 															registArticleVO.getEmail());
 		
@@ -61,17 +75,19 @@ public class ArticlesServiceimpl implements ArticlesService{
 		// insert한 게시글의 ID로 게시글 정보를 조회한다.
 		// -> insert한 게시글의 ID가 뭔지 모른다.
 		
-		System.out.println(insertedRows + "개의 row가 생성되었습니다.");
+//		logger.info(insertedRows + "개의 row가 생성되었습니다.");
+		logger.info("{}개의 row가 생성되었습니다.",insertedRows); // <= 안전하게 작성가능
 		
 		if(insertedRows > 0) {
 			return this.articlesDao.selectArticleByArticleId(registArticleVO.getId());
 		}
 		
-		throw new IllegalArgumentException("입력값이 유효하지 않습니다.");
+//		throw new IllegalArgumentException("입력값이 유효하지 않습니다.");
+		throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.BAD_REQUEST);
 		
 	}
 
-
+	@Transactional
 	@Override
 	public ArticlesVO updateArticle(String articleId, ModifyArticleVO modifyArticleVO) {
 		
@@ -85,12 +101,13 @@ public class ArticlesServiceimpl implements ArticlesService{
 		int updatedRows = this.articlesDao.updateArticle(articleId, modifyArticleVO);
 		
 		if(updatedRows == 0) {
-			throw new IllegalArgumentException("존재하지 않는 게시글 입니다.");
+//			throw new IllegalArgumentException("존재하지 않는 게시글 입니다.");
+			throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.NOT_EXISTS);
 		}
 		return this.articlesDao.selectArticleByArticleId(articleId);
 	}
 
-
+	@Transactional
 	@Override
 	public String deleteArticle(String articleId) {
 		
@@ -107,38 +124,44 @@ public class ArticlesServiceimpl implements ArticlesService{
 		ArticlesVO article = this.articlesDao.selectArticleByArticleId(articleId);
 		
 		if(!loggedMember.getEmail().equals(article.getEmail())) {
-			throw new IllegalArgumentException("삭제할 수 없는 게시글 입니다.");
+//			throw new IllegalArgumentException("삭제할 수 없는 게시글 입니다.");
+			throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.NOT_AUTHORIZED);
 		}// <- 세션기반의 어플리케이션에서 필수 적으로 작성되는 코드 
 		
 		int delete = this.articlesDao.deleteArticle(articleId);
 		if(delete == 0) {
-			throw new IllegalArgumentException("존재하지않는 게시글 입니다");
+//			throw new IllegalArgumentException("존재하지않는 게시글 입니다");
+			throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.NOT_EXISTS);
 		}
 		
 		int deleteCount = this.multipartHandler.deleteFiles(article.getFileSetId());
 		
-		System.out.println(deleteCount + "개의 파일이 삭제되었습니다.");
+		
+		logger.info("{}개의 파일이 삭제되었습니다", deleteCount);
+
 		
 		return this.articlesDao.deleteArticleByArticleId(articleId);
 	}
 
-
+	@Transactional
 	@Override
 	public ArticlesVO readOneArticle(String articleId) {
 		
 		int viewCount = this.articlesDao.updateIncreaseView(articleId);
 		if(viewCount == 0) {
-			throw new IllegalArgumentException("존재하지않는 게시글 입니다.");
+//			throw new IllegalArgumentException("존재하지않는 게시글 입니다.");
+			throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.NOT_EXISTS);
 		}
 		return this.articlesDao.selectArticleByArticleId(articleId);
 	}
 
-
+	@Transactional
 	@Override
 	public long recommendOneArticle(String articleId) {
 		int recommendCount = this.articlesDao.updateIncreaseRecommendCount(articleId);
 		if(recommendCount == 0) {
-			throw new IllegalArgumentException("존재하지않는 게시글 입니다.");
+//			throw new IllegalArgumentException("존재하지않는 게시글 입니다.");
+			throw new ArticleException(ExceptionType.ARTICLES, ArticleCodes.NOT_EXISTS);
 		}
 		return this.articlesDao.count(articleId);
 	}

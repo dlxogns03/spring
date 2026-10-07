@@ -17,6 +17,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.ktdsuniversity.edu.commons.exceptions.ArticleException;
+import com.ktdsuniversity.edu.commons.exceptions.enums.ArticleCodes;
+import com.ktdsuniversity.edu.commons.exceptions.enums.ExceptionType;
 import com.ktdsuniversity.edu.files.service.FilesService;
 import com.ktdsuniversity.edu.files.vo.response.FilesVO;
 
@@ -56,8 +59,7 @@ public class FilesController {
 		try {
 			fileInputStream = new FileInputStream(downloadFile);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ArticleException(ExceptionType.FILES,ArticleCodes.NOT_EXISTS);
 		}
 		
 		InputStreamResource resource = new InputStreamResource(fileInputStream);

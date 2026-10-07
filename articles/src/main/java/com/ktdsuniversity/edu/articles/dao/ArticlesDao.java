@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.ktdsuniversity.edu.articles.vo.request.ModifyArticleVO;
 import com.ktdsuniversity.edu.articles.vo.request.RegistArticleVO;
+import com.ktdsuniversity.edu.articles.vo.request.SearchArticleVO;
 import com.ktdsuniversity.edu.articles.vo.response.ArticlesVO;
 
 /**
@@ -19,13 +20,13 @@ public interface ArticlesDao {
 	 * 게시글의 총 개수를 반환
 	 * @return
 	 */
-	long selectArticlesCount();
+	long selectArticlesCount(SearchArticleVO searchArticleVO);
 	
 	/**
 	 * 게시글을 검색해서 반환 
 	 * @return
 	 */
-	List<ArticlesVO> selectAllArticles();
+	List<ArticlesVO> selectAllArticles(SearchArticleVO searchArticleVO);
 
 	/**
 	 * 클라이언트가 보내준 게시글 등록 정보를 데이터 베이스에 insert 한다.
