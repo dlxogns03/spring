@@ -90,10 +90,4 @@ public class PaginationVO {
 		
 	}
 	
-	public static void main(String[] args) {
-		PaginationVO pageTest = new PaginationVO();
-		pageTest.calculatePageCount(62);
-		
-		System.out.println(pageTest);
-	}
 }

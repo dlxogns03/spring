@@ -32,6 +32,14 @@
         <java.version>21</java.version>
     </properties>
     <dependencies>
+        
+        <!-- Source:
+        https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <!-- 암, 복호화를 위한 라이브러리 -->
         <dependency>
             <groupId>commons-codec</groupId>

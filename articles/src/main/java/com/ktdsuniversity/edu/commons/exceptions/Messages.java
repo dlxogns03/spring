@@ -26,6 +26,7 @@ public class Messages {
 		messages.get(ExceptionType.MEMBERS).put(ArticleCodes.NOT_MACHED_IDENTIFY, "이메일 또는 비밀번호가 일치하지 않습니다.");
 		messages.get(ExceptionType.MEMBERS).put(ArticleCodes.FAILURE_LOGIN, "로그인을 실패했습니다. 잠시 후 다시 시도해주세요.");
 		messages.get(ExceptionType.MEMBERS).put(ArticleCodes.BLOCKED_LOGIN, "로그인 실패 횟수가 누적되어 계정이 차단되었습니다. 잠시 후 다시 시도해주세요.");
+		messages.get(ExceptionType.MEMBERS).put(ArticleCodes.NOT_FOUND_USER, "사용자를 찾을 수 없습니다.");
 		
 		messages.put(ExceptionType.REPLIES, new HashMap<>());
 		messages.get(ExceptionType.REPLIES).put(ArticleCodes.NOT_EXISTS, "존재하지 않는 댓글입니다.");

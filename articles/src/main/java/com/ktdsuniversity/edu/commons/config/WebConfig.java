@@ -20,6 +20,7 @@ public class WebConfig  implements WebMvcConfigurer{
 		registry.addInterceptor(new CheckSessionInterceptor())
 				.addPathPatterns("/**")
 				.excludePathPatterns(
+						"/members/list",
 						"/error",
 						"/members/login",
 					    "/members/signup",

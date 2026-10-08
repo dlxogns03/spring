@@ -2,6 +2,7 @@ package com.ktdsuniversity.edu.members.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import com.ktdsuniversity.edu.commons.exceptions.enums.ExceptionType;
 import com.ktdsuniversity.edu.members.dao.MembersDao;
 import com.ktdsuniversity.edu.members.vo.request.LoginMemberVO;
 import com.ktdsuniversity.edu.members.vo.request.RegistMembersVO;
+import com.ktdsuniversity.edu.members.vo.request.SerchMembersVO;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
 
 import lombok.RequiredArgsConstructor;
@@ -175,6 +177,19 @@ public class MembersServiceImpl implements MembersService{
 		this.membersDao.updateLogoutStatus(email);
 		
 		return email+ "님 탈퇴 되었습니다.";
+	}
+
+
+
+	@Override
+	public List<MembersVO> getMember(SerchMembersVO serchMembersVO) {
+		long count = this.membersDao.countMembers(serchMembersVO);
+		serchMembersVO.calculatePageCount(count);
+		List<MembersVO> getmember = this.membersDao.getMember(serchMembersVO);
+		if(getmember.isEmpty()) {
+			throw new ArticleException(ExceptionType.MEMBERS, ArticleCodes.NOT_FOUND_USER);
+		}
+		return getmember;
 	}
 
 }

@@ -2,8 +2,11 @@ package com.ktdsuniversity.edu.members.service;
 
 
 
+import java.util.List;
+
 import com.ktdsuniversity.edu.members.vo.request.LoginMemberVO;
 import com.ktdsuniversity.edu.members.vo.request.RegistMembersVO;
+import com.ktdsuniversity.edu.members.vo.request.SerchMembersVO;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
 
 
@@ -18,5 +21,7 @@ public interface MembersService {
 	String updateLogoutStatus(String email);
 
 	String deleteMember(String email, String password);
+
+	List<MembersVO> getMember(SerchMembersVO serchMembersVO);
 
 }

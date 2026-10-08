@@ -1,5 +1,7 @@
 package com.ktdsuniversity.edu.members.web;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
@@ -14,6 +16,7 @@ import com.ktdsuniversity.edu.commons.util.ApiResponse;
 import com.ktdsuniversity.edu.members.service.MembersService;
 import com.ktdsuniversity.edu.members.vo.request.LoginMemberVO;
 import com.ktdsuniversity.edu.members.vo.request.RegistMembersVO;
+import com.ktdsuniversity.edu.members.vo.request.SerchMembersVO;
 import com.ktdsuniversity.edu.members.vo.response.MembersVO;
 
 import jakarta.servlet.http.HttpSession;
@@ -91,5 +94,15 @@ public class MembersController {
 		}
 		return ApiResponse.OK(email);
 
+	}
+	
+	@GetMapping("/members/list")
+	public ApiResponse<List<MembersVO>> getMembers(SerchMembersVO serchMembersVO){
+	
+		List<MembersVO> member = this.membersService.getMember(serchMembersVO);
+		
+		ApiResponse<List<MembersVO>> result = ApiResponse.OK(member);
+		result.setPaginate(serchMembersVO);
+		return result;
 	}
 }
